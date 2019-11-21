@@ -21,47 +21,17 @@ public class Main {
 		
 		pilot = me.getPilot();
 		
-		PilotRobot.resetTachoCount();
-		pilot.setLinearAcceleration(PilotRobot.ACCELERATION);
-		pilot.setLinearAcceleration(1000);
-		listenForBlackLines(pilot,me);
-		
-		
-		Button.waitForAnyPress();
-	}
-	
-	
-	
-	
-	/**
-	 * Localise Method
-	 * Travel slowly
-	 * Interrupt travel using instant stop upon seeing black colour
-	 * Rotate until both colours are black
-	 * Reverse 12.5 cm, rotate 90 degrees and localise.
-	 * Ta da we are localised.
-	 * */
-	
-	
-	
-	//Method to interrupt at black lines
-	public static void listenForBlackLines(MovePilot pilot, PilotRobot me) {
-		Behavior left = new LeftColor(me); 
-		Behavior right = new RightColor(me);
-		BothColor both = new BothColor(me);
-		
-		Behavior cntrll = new Controller(me);	//Figures out order of behaviours, controls overall activity
-		Behavior[] bArray = {cntrll, left, right, both};
-		
-		
-		
-		Arbitrator arby = new Arbitrator(bArray,true);
-		
-		both.set_arby(arby);
-		
-		
-		arby.go();
-		System.out.println("END BLACK LINES");
+		// Create new Travel Cells function in PilotRobot
+		// Create new Localise Gyroscope function.
+//		System.out.println(me.getAngle());
+//		pilot.rotate(90);
+//		System.out.println(me.getAngle());
+		Corrections c = new Corrections(me);
+		while(true) {
+			me.travelCellDistance(4);
+			pilot.rotate(-90);
+			c.lineLocalisation();
+		}
 	}
 
 }

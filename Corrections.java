@@ -98,7 +98,7 @@ public class Corrections{
 	 * */
 	public void bothBlackAction() {
 		pilot.setLinearAcceleration(PilotRobot.ACCELERATION);
-		pilot.travel(-10);
+		pilot.travel(-8.5);
 		pilot.setLinearAcceleration(PilotRobot.ACCELERATION);
 	}
 	

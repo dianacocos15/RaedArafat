@@ -82,8 +82,8 @@ public class PilotRobot {
 		distSample = new float[distSP.sampleSize()];		// Size is 1
 		angleSample = new float[gyroSP.sampleSize()];	// Size is 1
 
-		Wheel leftWheel = WheeledChassis.modelWheel(Motor.B, 4.253133).offset(-4.9);
-		Wheel rightWheel = WheeledChassis.modelWheel(Motor.D, 4.253133).offset(4.9);
+		Wheel leftWheel = WheeledChassis.modelWheel(Motor.B, 4.253133).offset(-5.58227848);
+		Wheel rightWheel = WheeledChassis.modelWheel(Motor.D, 4.253133).offset(5.58227848);
 		
 		
 		Chassis myChassis = new WheeledChassis( new Wheel[]{leftWheel, rightWheel}, WheeledChassis.TYPE_DIFFERENTIAL);
@@ -146,6 +146,30 @@ public class PilotRobot {
 		
 	}
 	
+	public void travelCellDistance(int number_of_cells) {
+		resetTachoCount();
+		
+		pilot.setLinearAcceleration(8);
+		double cell_width = 25.5;
+		double required_distance = cell_width*number_of_cells;			// Distance in cm
+		
+		pilot.travel(cell_width*number_of_cells);
+		
+		while(true) {
+			//if we have travelled enough then break
+			int actual_distance = (int)getTravelDistance();
+			
+			if(actual_distance == (int)required_distance){
+				break;
+			}
+			else {
+				pilot.travel(required_distance - actual_distance);
+			}
+		}
+		pilot.setLinearAcceleration(PilotRobot.DECELERATION);
+	}
+	
+	
 	//Rotate head of the ultrasound sensor
 	public void rotateHead(int position) {
 		Motor.C.rotateTo(position);
@@ -197,6 +221,11 @@ public class PilotRobot {
 		
 
 		return average;
+	}
+
+	public void resetGyro() {
+		// TODO Auto-generated method stub
+		gSensor.reset();
 	}	
 }
 
