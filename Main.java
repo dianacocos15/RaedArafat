@@ -1,7 +1,9 @@
+import java.io.File;
 import java.util.List;
 
 
 import lejos.hardware.Button;
+import lejos.hardware.*;
 import lejos.robotics.navigation.MovePilot;
 import lejos.robotics.subsumption.Arbitrator;
 import lejos.robotics.subsumption.Behavior;
@@ -10,28 +12,24 @@ import lejos.robotics.*;
 
 
 public class Main {
-
+	
+	static PilotRobot me;
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		MovePilot pilot;
-		PilotRobot me;
-		
 		me = new PilotRobot();
-		
-		pilot = me.getPilot();
-		
-		// Create new Travel Cells function in PilotRobot
-		// Create new Localise Gyroscope function.
-//		System.out.println(me.getAngle());
-//		pilot.rotate(90);
-//		System.out.println(me.getAngle());
+		Movement m = new Movement(me);
 		Corrections c = new Corrections(me);
+		
+		System.out.println("Waiting for PC....");
+		EV3Server ev3 = new EV3Server();
+		ev3.run(me);
+		System.out.println("Connecting....");
+		
 		while(true) {
-			me.travelCellDistance(4);
-			pilot.rotate(-90);
-			c.lineLocalisation();
+			
 		}
 	}
+	
+
 
 }

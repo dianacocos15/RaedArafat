@@ -9,10 +9,13 @@ import lejos.robotics.*;
 
 
 /**
- * Class exists to allow arby to stop only when goal accomplished*/
+ * @author Suhail Munshi
+ * Class exists to correct on lines to localise
+ */
 public class Corrections{
 	MovePilot pilot;
 	PilotRobot robot;
+	Movement move;
 	
 	/*
 	 * Constructor
@@ -20,25 +23,67 @@ public class Corrections{
 	public Corrections(PilotRobot me) {
 		robot = me;
 		pilot = me.getPilot();
+		move = new Movement(robot);
 	}
 	
 	/**
 	 * Method to call for full inside cell localisation
 	 * Uses grid lines
 	 * */
-	public void lineLocalisation() {
+	public void lineLocalisationToRight() {
 		/*
 		 * Travel forward with interrupt, correct using lines, move backwards 
 		 * rotate 90 degrees and repeat.
 		 * */
-		robot.rotate(90);
-		moveWithInterrupt();
+		move.moveWithInterrupt();
 		correctOnLines(30, false);
-		robot.rotate(-90);
-		moveWithInterrupt();
+		move.rotate(90);
+		move.moveWithInterrupt();
 		correctOnLines(30, true);
 	}
-
+	
+	/**
+	 * Method to call for full inside cell localisation
+	 * Uses grid lines
+	 * */
+	public void lineLocalisationToLeft() {
+		/*
+		 * Travel forward with interrupt, correct using lines, move backwards 
+		 * rotate 90 degrees and repeat.
+		 * */
+		move.moveWithInterrupt();
+		correctOnLines(30, false);
+		move.rotate(-90);
+		move.moveWithInterrupt();
+		correctOnLines(30, true);
+	}
+	
+	/**
+	 * Method to call for full inside cell localisation
+	 * Uses grid lines
+	 * */
+	public void lineLocalisationBehind() {
+		/*
+		 * Travel forward with interrupt, correct using lines, move backwards 
+		 * rotate 90 degrees and repeat.
+		 * */
+		move.rotate(180);
+		move.moveWithInterrupt();
+		correctOnLines(30, false);
+		move.rotate(90);
+		move.moveWithInterrupt();
+		correctOnLines(30, true);
+	}
+	
+	
+	
+	/*
+	 * Correct on black lines, rotate and return to center
+	 * */
+	public void rotateAndLineCorrect(int angle){
+		move.rotate(angle);
+		correctOnLines(30,false);
+	}
 	
 	/**
 	 * Already have stopped on lines
@@ -46,15 +91,16 @@ public class Corrections{
 	 * Stop moving when reaching black lines
 	 * Rotate until both colour sensors reach black lines
 	 * */
-	public void correctOnLines(int max_degrees, boolean set_gyro) {
+	public void correctOnLines(int max_degrees, boolean reset_gyro) {
 		pilot.setAngularAcceleration(10);
+		pilot.setLinearSpeed(10);
 		int corrections_count = 0;
 		
 		while(true) {
 			if(robot.getLeftColourSensor() == Color.BLACK && robot.getRightColourSensor() == Color.BLACK) {
 				Sound.beep();
-				pilot.setLinearAcceleration(150);
-				pilot.stop();
+				robot.resetGyro();
+				move.stopInstantly();
 				break;
 			}
 			
@@ -65,21 +111,21 @@ public class Corrections{
 			
 			//left is black, not right
 			if(robot.getLeftColourSensor() == Color.BLACK && robot.getRightColourSensor() != Color.BLACK) {
-				pilot.stop();
+				move.stopInstantly();
 				pilot.rotate(-3,true);
 				corrections_count ++;
 			}
 			
 			//right is black, not left
 			if(robot.getRightColourSensor() == Color.BLACK && robot.getLeftColourSensor() != Color.BLACK) {
-				pilot.stop();
+				move.stopInstantly();
 				pilot.rotate(3,true);
 				corrections_count ++;
 			}
 			
-			//neither is black
+			//neither is black and it is not moving.
 			if(robot.getRightColourSensor() != Color.BLACK && robot.getLeftColourSensor() != Color.BLACK && !pilot.isMoving()) {
-				pilot.stop();
+				move.stopInstantly();
 				pilot.setLinearAcceleration(3);
 				pilot.travel(10,true);
 				corrections_count = 0;
@@ -98,19 +144,9 @@ public class Corrections{
 	 * */
 	public void bothBlackAction() {
 		pilot.setLinearAcceleration(PilotRobot.ACCELERATION);
-		pilot.travel(-8.5);
-		pilot.setLinearAcceleration(PilotRobot.ACCELERATION);
+		//Travel distance of half square backwards minus distance of wheel center to color sensors
+		pilot.travel(-12.75+4.253);
 	}
 	
-	
-	/**
-	 * Move off at a slow speed with interrupt
-	 * */
-	public void moveWithInterrupt() {
-		pilot.setLinearSpeed(5);
-		pilot.setLinearAcceleration(3);
-		pilot.travel(25.5, true);
-		pilot.setLinearAcceleration(150);
-	}
 	
 }
