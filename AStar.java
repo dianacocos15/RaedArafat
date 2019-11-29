@@ -6,13 +6,11 @@ import java.util.Iterator;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 
-//import AStar.Node;
-
 public class AStar {
     private final List<Node> open; //list of unexpanded neighbours
     private final List<Node> closed; //list of expanded neighbours
     private final List<Node> path;
-    private static List<Node> optimalPath;
+    List<Node> optimalPath;
     private static int[][] maze = {
             {  0,  0,  0,  0,  0,  0,  0,  0},
             {  0,  0,  0,  0,  0,  0,  0,  0},
@@ -27,12 +25,27 @@ public class AStar {
     private static int xstart = 0;
     private static int ystart = 0;
     private static int xend, yend;
-    static Double[][] costs = new Double[6][6];
+    Double[][] costs = new Double[6][6];
     
     private final static int EAST = 0;
     private final static int SOUTH = 1;
     private final static int WEST = 2;
     private final static int NORTH = 3;
+    
+    Location H = new Location("H", 0, 0);
+    Location A = new Location("A", 1, 3);
+    Location B = new Location("B", 2, 4);
+    Location C = new Location("C", 5, 3);
+    Location D = new Location("D", 4, 2);
+    Location E = new Location("E", 1, 5);
+    
+    Location[] locations = {H, A, B, C, D, E};
+    
+    LocationOrder order = new LocationOrder();
+    Location currentLocation;
+    Location nextLocation;
+    
+    List<Integer> indexes = order.computeOrderOfLocations();
     
     static class Node implements Comparable {
         public Node parent;
@@ -48,14 +61,13 @@ public class AStar {
             this.h = h;
         }
         
-        @Override
         public int compareTo(Object o) {
             Node that = (Node) o;
             return (int)((this.g + this.h) - (that.g + that.h));
         }
     }
 
-    static class Location {
+    class Location {
         public String name;
         public int x;
         public int y;
@@ -67,7 +79,7 @@ public class AStar {
         }
     }
 
-    static class Obstacle {
+    class Obstacle {
         public int x;
         public int y;
 
@@ -77,7 +89,7 @@ public class AStar {
         }
     }
 
-    static class Victim {
+    class Victim {
         public int x;
         public int y;
 
@@ -87,14 +99,13 @@ public class AStar {
         }
     }
     
-    static class LocationOrder {
+    class LocationOrder {
     	int nextLocation = 0;
         int currentLocation = 0;
         boolean[] wasLocationVisited = {false, false, false, false, false, false};
-        List<Integer>locationsOrder = new ArrayList<>();
-    	
-    	public Double[][] computeCostsBetweenLocations(Location H, Location A, Location B, Location C, Location D, Location E) {
-    		Location[] locations = {H, A, B, C, D, E};
+        List<Integer>locationsOrder = new ArrayList<Integer>();
+       
+    	public Double[][] computeCostsBetweenLocations() {
     		
     		for(int i = 0; i < locations.length; i++) {
                 for (int j = 0; j < locations.length; j++) {
@@ -110,13 +121,13 @@ public class AStar {
                         costs[i][j] = distance;
                     }
                     
-                    System.out.print(costs[i][j]);
-                    System.out.print(" ");
+                    //System.out.print(costs[i][j]);
+                    //System.out.print(" ");
 //                    table.setValueAt(AStar.costs[i][j], i, j);
 //                    table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
                 }
 
-                System.out.println();
+               // System.out.println();
 
             }
     		
@@ -124,6 +135,7 @@ public class AStar {
     	}
     	
     	public List<Integer> computeOrderOfLocations() {
+    		Double[][] costs = computeCostsBetweenLocations();
     		for (int i = currentLocation; i < 6; i++) {
                 double smallestCost = Double.MAX_VALUE;
                 locationsOrder.add(currentLocation);
@@ -152,16 +164,22 @@ public class AStar {
     	}
     }
 
-    AStar(int[][] maze, int xstart, int ystart) {
-        this.open = new ArrayList<>();
-        this.closed = new ArrayList<>();
-        this.path = new ArrayList<>();
+    public AStar() {
+        this.open = new ArrayList<Node>();
+        this.closed = new ArrayList<Node>();
+    	this.path = new ArrayList<Node>();
+    }
+    
+    public AStar(int[][] maze, int xstart, int ystart) {
+        this.open = new ArrayList<Node>();
+        this.closed = new ArrayList<Node>();
+        this.path = new ArrayList<Node>();
         this.maze = maze;
         this.now = new Node(null, xstart, ystart, 0, 0);
         this.xstart = xstart;
         this.ystart = ystart;
     }
-  
+
     public List<Node> findPathTo(int xend, int yend) {
         this.xend = xend;
         this.yend = yend;
@@ -230,23 +248,58 @@ public class AStar {
         Collections.sort(this.open);
     }
 
-    public static List<Node> getOptimalPath(int xstart, int ystart, int xend, int yend) {
+    public List<Node> getOptimalPath(int xstart, int ystart, int xend, int yend) {
         AStar as = new AStar(maze, xstart, ystart);
         optimalPath = as.findPathTo(xend, yend);
         
         return optimalPath;
     }
+        
+    private void goToNextUnvisitedLocation() {
+    	Location nextLocation;
+    	
+	    for (int x = 0; x < indexes.size()-1; x++) {
+	    	nextLocation = locations[indexes.get(x+1)];
+			if (order.wasLocationVisited[x+1] == true) continue;
+			else nextLocation.x = x+1;
+		}
+    }
     
-    private static List<String> generateListOfCommands(Location[] locations, List<Integer> indexes) {
-		List<String> commandsList = new ArrayList<>();
-		List<Node> path = new ArrayList<>();
+    List<String> generateListOfCommands() {
+    	ParamedicEnv env = new ParamedicEnv();
+    	Mission mission = new Mission(6, env);
+    	Location currentLocation;
+    	
+		List<String> commandsList = new ArrayList<String>();
+		List<Node> path = new ArrayList<Node>();
 		int currentDirection = 0;
 		int nextDirection = 0;
 		
 		for (int i = 0; i < indexes.size()-1; i++) {
-			Location currentLocation = locations[indexes.get(i)];
-			Location nextLocation = locations[indexes.get(i+1)];
+			currentLocation = locations[indexes.get(i)];
 			
+			//if current location == HOSPITAL
+			//check for next unvisited location and set it as the next location
+//			if (currentLocation.x == 0 && currentLocation.y == 0) {
+//				mission.addHospital(currentLocation.x, currentLocation.y);
+//				goToNextUnvisitedLocation();
+//			}
+//			
+//			else {
+//				mission.addPotentialVictim(currentLocation.x, currentLocation.y);
+//				if (mission.isVictim == true) {
+//					if (mission.isVictimCritical == true) {
+//						mission.foundCritical(currentLocation.x, currentLocation.y);
+//						nextLocation.x = 0;
+//					}
+//					else {
+//						mission.foundNonCritical(currentLocation.x, currentLocation.y);
+//						goToNextUnvisitedLocation();
+//					}
+//				}
+//				else 
+//			}
+
 			path = getOptimalPath(currentLocation.x, currentLocation.y, nextLocation.x, nextLocation.y);
 			System.out.println();
 			
@@ -281,9 +334,9 @@ public class AStar {
 				
 					case EAST: {
 						switch (nextDirection) {
-							case SOUTH: commandsList.add("90");
+							case SOUTH: commandsList.add("-90");
 								break;
-							case NORTH: commandsList.add("-90");
+							case NORTH: commandsList.add("90");
 								break;
 							case WEST: commandsList.add("-180");
 								break;
@@ -295,9 +348,9 @@ public class AStar {
 					
 					case SOUTH: {
 						switch (nextDirection) {
-							case EAST: commandsList.add("-90");
+							case EAST: commandsList.add("90");
 								break;
-							case WEST: commandsList.add("90");	
+							case WEST: commandsList.add("-90");	
 								break;
 							case NORTH: commandsList.add("180");
 								break;
@@ -309,9 +362,9 @@ public class AStar {
 					
 					case WEST: {
 						switch (nextDirection) {
-							case SOUTH: commandsList.add("-90");
+							case SOUTH: commandsList.add("90");
 								break;
-							case NORTH: commandsList.add("90");
+							case NORTH: commandsList.add("-90");
 								break;
 							case EAST: commandsList.add("180");
 								break;
@@ -323,9 +376,9 @@ public class AStar {
 					
 					case NORTH: {
 						switch (nextDirection) {
-							case EAST: commandsList.add("90");
+							case EAST: commandsList.add("-90");
 								break;
-							case WEST: commandsList.add("-90");
+							case WEST: commandsList.add("90");
 								break;
 							case SOUTH: 
 								commandsList.add("-180");
@@ -342,41 +395,41 @@ public class AStar {
 
 			}		
 			
-			for(String command: commandsList) {
-				System.out.println();
-				System.out.print(command);
-			}
+//			for(String command: commandsList) {
+//				System.out.println();
+//				System.out.print(command);
+//			}
 			
-			commandsList.clear();
-			System.out.println();
+			//commandsList.clear();
+			//System.out.println();
 			
 		}
 		return commandsList;
-	}
-    
-    
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("Paramedic Navigation");
-        JTable table = new JTable(6,6);
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+    }
+}
+   
+    //public static void main(String[] args) {
+//        JFrame frame = new JFrame("Paramedic Navigation");
+//        JTable table = new JTable(6,6);
+//        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
 
-        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        table.setRowHeight(50);
-        table.setFont(new java.awt.Font("", 1, 20));
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500,500);
-        frame.getContentPane().add(table);
-        frame.setLocation(700, 200);
-        frame.setVisible(true);
+//        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+//        table.setRowHeight(50);
+//        table.setFont(new java.awt.Font("", 1, 20));
+//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        frame.setSize(500,500);
+//        frame.getContentPane().add(table);
+//        frame.setLocation(700, 200);
+//        frame.setVisible(true);
 
-        Location H = new Location("H", 0, 0);
-        Location A = new Location("A", 1, 3);
-        Location B = new Location("B", 2, 4);
-        Location C = new Location("C", 5, 3);
-        Location D = new Location("D", 4, 2);
-        Location E = new Location("E", 1, 5);
-        
-        Location[] locations = {H, A, B, C, D, E};
+//        Location H = new Location("H", 0, 0);
+//        Location A = new Location("A", 1, 3);
+//        Location B = new Location("B", 2, 4);
+//        Location C = new Location("C", 5, 3);
+//        Location D = new Location("D", 4, 2);
+//        Location E = new Location("E", 1, 5);
+//        
+//        Location[] locations = {H, A, B, C, D, E};
        
 //        Obstacle o1 = new Obstacle(2,5);
 //        Obstacle o2 = new Obstacle(1,2);
@@ -393,17 +446,15 @@ public class AStar {
 //        Victim[] victims = {v1, v2, v3};
        
         
-        LocationOrder order = new LocationOrder();
-        order.computeCostsBetweenLocations(H, A, B, C, D, E);
-        List<Integer> locationsOrder = order.computeOrderOfLocations();
-        generateListOfCommands(locations, locationsOrder);  
+//        LocationOrder order = new LocationOrder();
+//        order.computeCostsBetweenLocations(H, A, B, C, D, E);
+//        List<Integer> locationsOrder = order.computeOrderOfLocations();
+//        generateListOfCommands(locations, locationsOrder);  
         
-        for(int i = 0; i < costs.length; i++) {
-        	for(int j = 0; j < costs[i].length; j++) {
-        		table.setValueAt(AStar.costs[i][j], i, j);
-        		table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-        	}
-        }
-    }
-}
-	
+//        for(int i = 0; i < costs.length; i++) {
+//        	for(int j = 0; j < costs[i].length; j++) {
+//        		table.setValueAt(AStar.costs[i][j], i, j);
+//        		table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+//        	}
+//        }
+    //}
