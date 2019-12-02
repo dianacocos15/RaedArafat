@@ -54,7 +54,7 @@ public class PilotRobot {
 	static final int SAMPLE_SIZE = 80;
 	
 	private MovePilot pilot;	
-
+	public static boolean rotated = false;
 	
 	/*
 	 * PilotRobot Constructor

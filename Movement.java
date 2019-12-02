@@ -29,12 +29,22 @@ public class Movement {
 	 * */
 	public void travelCellDistance(int number_of_cells) {
 		PilotRobot.resetTachoCount();
+		double required_distance;
 		double cell_width = 25.5;
-		double required_distance = cell_width*number_of_cells;			// Distance in cm
+					// Distance in cm
 		
 		pilot.setLinearAcceleration(PilotRobot.ACCELERATION);
 		pilot.setLinearSpeed(PilotRobot.TOP_SPEED);
-		pilot.travel(cell_width*number_of_cells);
+		
+		if(PilotRobot.rotated = true) {
+			required_distance = cell_width*number_of_cells -8.5;
+			PilotRobot.rotated = false;
+		}
+		else {
+			required_distance = cell_width*number_of_cells;
+		}
+		
+		pilot.travel(required_distance);
 		
 		while(true) {
 			//if we have travelled enough then break

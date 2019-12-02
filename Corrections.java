@@ -36,10 +36,10 @@ public class Corrections{
 		 * rotate 90 degrees and repeat.
 		 * */
 		move.moveWithInterrupt();
-		correctOnLines(30, false);
+		correctOnLines(30, false, true);
 		move.rotate(90);
 		move.moveWithInterrupt();
-		correctOnLines(30, true);
+		correctOnLines(30, true, true);
 	}
 	
 	/**
@@ -52,10 +52,10 @@ public class Corrections{
 		 * rotate 90 degrees and repeat.
 		 * */
 		move.moveWithInterrupt();
-		correctOnLines(30, false);
+		correctOnLines(30, false, true);
 		move.rotate(-90);
 		move.moveWithInterrupt();
-		correctOnLines(30, true);
+		correctOnLines(30, true, true);
 	}
 	
 	/**
@@ -69,10 +69,10 @@ public class Corrections{
 		 * */
 		move.rotate(180);
 		move.moveWithInterrupt();
-		correctOnLines(30, false);
+		correctOnLines(30, false, true);
 		move.rotate(90);
 		move.moveWithInterrupt();
-		correctOnLines(30, true);
+		correctOnLines(30, true, true);
 	}
 	
 	
@@ -82,8 +82,10 @@ public class Corrections{
 	 * */
 	public void rotateAndLineCorrect(int angle){
 		move.rotate(angle);
-		correctOnLines(30,false);
+		correctOnLines(30,false,false);
+		PilotRobot.rotated = true;
 	}
+	
 	
 	/**
 	 * Already have stopped on lines
@@ -91,7 +93,7 @@ public class Corrections{
 	 * Stop moving when reaching black lines
 	 * Rotate until both colour sensors reach black lines
 	 * */
-	public void correctOnLines(int max_degrees, boolean reset_gyro) {
+	public void correctOnLines(int max_degrees, boolean reset_gyro, boolean center_robot) {
 		pilot.setAngularAcceleration(10);
 		pilot.setLinearSpeed(10);
 		int corrections_count = 0;
@@ -133,8 +135,12 @@ public class Corrections{
 		
 		}
 		
-		robot.resetGyro();
-		bothBlackAction();
+		if(reset_gyro) {
+			robot.resetGyro();
+		}
+		if(center_robot) {
+			bothBlackAction();
+		}
 	}
 	
 	
@@ -144,7 +150,7 @@ public class Corrections{
 	 * */
 	public void bothBlackAction() {
 		pilot.setLinearAcceleration(PilotRobot.ACCELERATION);
-		//Travel distance of half square backwards minus distance of wheel center to color sensors
+		//Travel distance of half square backwards minus distance of wheel centre to colour sensors
 		pilot.travel(-12.75+4.253);
 	}
 	
