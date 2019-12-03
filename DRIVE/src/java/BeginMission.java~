@@ -1,0 +1,61 @@
+public class BeginMission {
+	
+	private int dodgy = 0;
+	private final int gSize;
+	private char[][] gridArray; 
+	
+	//constructor
+	public BeginMission(int size) {
+		this.gSize = size;
+		
+		gridArray = new char[gSize][gSize];
+		//initializing array
+		for (int i = 0; i < gSize; i++) {
+			for (int j = 0; j < gSize; j++) {
+				gridArray[i][j] = '0';
+			}
+		}
+		
+	}
+
+	//adds obstacles to the array
+	public void addObstacle(int x, int y) {
+		System.out.println("[BeginMission] Obstacle received at (" + x + ", " + y + ")");
+		gridArray[x][y] = 'X';
+	}
+	
+	//adds hospital to the array
+	public void addHospital(int x, int y) {
+		System.out.println("[BeginMission] Hospital received at (" + x + ", " + y + ")");
+		gridArray[x][y] = 'H';
+	}
+	
+	//adds potential victim locations to the array
+	public void addPotentialVictim(int x, int y) {
+		System.out.println("[BeginMission] Potential victim received at (" + x + ", " + y + ")");
+		gridArray[x][y] = 'V';
+		dodgy++;
+		if (dodgy == 5) {
+			finished();
+		}
+	}
+	
+	//called when finished
+	public void finished() {
+		drawGrid();
+	}
+	
+	public void drawGrid() {
+		for (int y = 0; y < gSize; y++) {
+			for (int x = 0; x < gSize; x++) {
+				System.out.print(gridArray[x][y]);
+			}
+			System.out.println();
+		}
+	}
+
+
+
+
+
+}
