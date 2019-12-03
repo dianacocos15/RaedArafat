@@ -1,0 +1,13 @@
+MAS doctor2019 {
+
+	infrastructure: Centralised
+
+	environment: ParamedicEnv
+
+	agents:
+		paramedic;
+		doctor4;
+
+	aslSourcePath:
+		"src/asl";
+}
