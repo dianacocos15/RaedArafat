@@ -14,12 +14,10 @@ public class AStar {
 				{ 0, 0, 0, 0, 0, 0 }, 
 				{ 0, 0, 0, 0, 0, 0 }, 
 				{ 0, 0, 0, 0, 0, 0 },
-				{ 0, 0, 0, 0, 0, 0 }, 
-				{ 0, 0, 0, 0, 0, 0 }, 
 			};
 	private Node now;
-	private static int xstart = 0;
-	private static int ystart = 0;
+	static int xstart = 0;
+	static int ystart = 0;
 	private static int xend, yend;
 	Double[][] costs = new Double[6][6];
 
@@ -27,7 +25,9 @@ public class AStar {
 	private final static int SOUTH = 1;
 	private final static int WEST = 2;
 	private final static int NORTH = 3;
-
+	private int locations_added = 0;
+	
+	/*Deprecated Locations*/
 	Location H = new Location("H", 0, 0);
 	Location A = new Location("A", 1, 3);
 	Location B = new Location("B", 2, 4);
@@ -35,7 +35,20 @@ public class AStar {
 	Location D = new Location("D", 4, 2);
 	Location E = new Location("E", 1, 5);
 
-	Location[] locations = { H, A, B, C, D, E };
+	/*Location array for path finding*/
+	Location[] locations = new Location[6];
+	LocationOrder order;
+	List<Integer> indexes;
+	Location nextLocation;
+	
+	/*ArrayList to convert to array once grid fully initialised*/
+	List<Location> locations_list = new ArrayList<>();
+	
+	/*To add hospital or specific location/ landmark */
+	public void addLocation(String name, int x, int y, int index) {
+		Location new_point = new Location(name, x ,y);
+		locations[index] = new_point;
+	}
 
 	static class Node implements Comparable {
 		public Node parent;
@@ -65,26 +78,6 @@ public class AStar {
 
 		Location(String name, int x, int y) {
 			this.name = name;
-			this.x = x;
-			this.y = y;
-		}
-	}
-
-	static class Obstacle {
-		public int x;
-		public int y;
-
-		Obstacle(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
-
-	class Victim {
-		public int x;
-		public int y;
-
-		Victim(int x, int y) {
 			this.x = x;
 			this.y = y;
 		}
@@ -127,7 +120,7 @@ public class AStar {
 
 		public List<Integer> computeOrderOfLocations() {
 			Double[][] costs = computeCostsBetweenLocations();
-			double smallestCost = 200;
+			double smallestCost = Double.MAX_VALUE;
 			for (int i = currentLocation; i < 6; i++) {
 				// double smallestCost = 200;
 				locationsOrder.add(currentLocation);
@@ -157,13 +150,15 @@ public class AStar {
 			return locationsOrder;
 		}
 	}
-
+	
+	/*Initialise maze with default values*/
 	public AStar() {
 		this.open = new ArrayList<Node>();
 		this.closed = new ArrayList<Node>();
 		this.path = new ArrayList<Node>();
 	}
-
+	
+	/*Initialise pathfinding maze*/
 	public AStar(int[][] maze, int xstart, int ystart) {
 		this.open = new ArrayList<Node>();
 		this.closed = new ArrayList<Node>();
@@ -172,6 +167,50 @@ public class AStar {
 		this.now = new Node(null, xstart, ystart, 0, 0);
 		AStar.xstart = xstart;
 		AStar.ystart = ystart;
+	}
+	
+	/*For when initialising the AStar class from mission*/
+	public AStar(char[][] gridArray, int xstart, int ystart) {
+		this.open = new ArrayList<Node>();
+		this.closed = new ArrayList<Node>();
+		this.path = new ArrayList<Node>();
+		AStar.maze = maze;
+		this.now = new Node(null, xstart, ystart, 0, 0);
+		AStar.xstart = xstart;
+		AStar.ystart = ystart;
+		
+		/*Set variables*/
+		parseGrid(gridArray);
+		order = new LocationOrder();
+		indexes = order.computeOrderOfLocations();
+		System.out.println("index is :" + indexes.size());
+	}
+	
+	/*After recieving the grid from mission, we add locations hospital etc*/
+	public void parseGrid(char[][] gridArray) {
+		/*Mark points of interest, obstacles, victims etc*/
+		System.out.println("length is :" + gridArray.length);
+		int location_count = 0;
+		String[] names = {"H","A", "B", "C", "D", "E"};
+		
+		for (int y = 0; y < gridArray.length; y++) {
+			for (int x = 0; x < gridArray[y].length; x++) {
+				if (gridArray[x][y] == 'X') {
+					AStar.maze[x][y] = 100;
+				}
+				if(gridArray[x][y] == 'H') {
+					locations[location_count] = new Location("H", x, y);
+					location_count++;
+				}
+				if(gridArray[x][y] == 'V') {
+					addLocation(names[location_count] ,x ,y, location_count);
+					location_count++;
+				}
+			}
+		}
+		
+		/*Change location list to fixed array*/
+		locations = locations_list.toArray(new Location[locations_list.size()]);
 	}
 
 	public List<Node> findPathTo(int xend, int yend) {
@@ -241,154 +280,162 @@ public class AStar {
 		}
 		Collections.sort(this.open);
 	}
-
-
+	
+	
+	
+	
 	public List<Node> getOptimalPath(int xstart, int ystart, int xend, int yend) {
-		List<String> commandsList = new ArrayList<>();
 		AStar as = new AStar(maze, xstart, ystart);
-		
 		optimalPath = as.findPathTo(xend, yend);
 		
 		return optimalPath;
 	}
-	
-	
-	 public List<String> generateListOfCommands() {
-		List<String> commandsList = new ArrayList<String>();
+
+	public List<String> getListOfCommandsFromOneLocationToAnother(int xstart, int ystart, int xend, int yend) {
+		List<String> commandsList = new ArrayList<>();
 		int currentDirection = 0;
 		int nextDirection = 0;
-		List<Node> path = new ArrayList<>();
 		
-		LocationOrder order = new LocationOrder();
-		List<Integer> indexes = order.computeOrderOfLocations();
+		AStar as = new AStar(maze, xstart, ystart);
+		optimalPath = as.findPathTo(xend, yend);
+		
+		for (int a = 0; a < optimalPath.size() - 1; a++) {
+			Node currentNode = optimalPath.get(a);
+			Node nextNode = optimalPath.get(a + 1);
 
-		for (int i = 0; i < indexes.size() - 1; i++) {
-			Location currentLocation = locations[indexes.get(i)];
-			Location nextLocation = locations[indexes.get(i+1)];
+			int currentX = currentNode.x;
+			int currentY = currentNode.y;
 
-			path = getOptimalPath(currentLocation.x, currentLocation.y, nextLocation.x, nextLocation.y);
+			int nextX = nextNode.x;
+			int nextY = nextNode.y;
 
-			System.out.println();
+			// 0 = EAST
+			// 1 = SOUTH
+			// 2 = WEST
+			// 3 = NORTH
 
-			for (int a = 0; a < path.size() - 1; a++) {
-				Node currentNode = path.get(a);
-				Node nextNode = path.get(a + 1);
-
-				int currentX = currentNode.x;
-				int currentY = currentNode.y;
-
-				int nextX = nextNode.x;
-				int nextY = nextNode.y;
-
-				// 0 = EAST
-				// 1 = SOUTH
-				// 2 = WEST
-				// 3 = NORTH
-
-				// y changes
-				if (currentX == nextX) {
-					if (currentY > nextY)
-						nextDirection = 1;
-					else
-						nextDirection = 3;
-				}
-
-				// x changes
-				else {
-					if (currentX > nextX)
-						nextDirection = 2;
-					else
-						nextDirection = 0;
-				}
-
-				switch (currentDirection) {
-
-				case EAST: {
-					switch (nextDirection) {
-					case SOUTH:
-						commandsList.add("-90");
-						break;
-					case NORTH:
-						commandsList.add("90");
-						break;
-					case WEST:
-						commandsList.add("-180");
-						break;
-					default:
-						break;
-					}
-				}
-					break;
-
-				case SOUTH: {
-					switch (nextDirection) {
-					case EAST:
-						commandsList.add("90");
-						break;
-					case WEST:
-						commandsList.add("-90");
-						break;
-					case NORTH:
-						commandsList.add("180");
-						break;
-					default:
-						break;
-					}
-				}
-					break;
-
-				case WEST: {
-					switch (nextDirection) {
-					case SOUTH:
-						commandsList.add("90");
-						break;
-					case NORTH:
-						commandsList.add("-90");
-						break;
-					case EAST:
-						commandsList.add("180");
-						break;
-					default:
-						break;
-					}
-				}
-					break;
-
-				case NORTH: {
-					switch (nextDirection) {
-					case EAST:
-						commandsList.add("-90");
-						break;
-					case WEST:
-						commandsList.add("90");
-						break;
-					case SOUTH:
-						commandsList.add("-180");
-						break;
-					default:
-						break;
-					}
-				}
-					break;
-				}
-
-				commandsList.add("travel");
-				currentDirection = nextDirection;
-
+			// y changes
+			if (currentX == nextX) {
+				if (currentY > nextY)
+					nextDirection = 1;
+				else
+					nextDirection = 3;
 			}
 
-			// for(String command: commandsList) {
-			// System.out.println();
-			// System.out.print(command);
-			// }
+			// x changes
+			else {
+				if (currentX > nextX)
+					nextDirection = 2;
+				else
+					nextDirection = 0;
+			}
 
-			// commandsList.clear();
-			// System.out.println();
+			switch (currentDirection) {
+
+			case EAST: {
+				switch (nextDirection) {
+				case SOUTH:
+					commandsList.add("90");
+					break;
+				case NORTH:
+					commandsList.add("-90");
+					break;
+				case WEST:
+					commandsList.add("-180");
+					break;
+				default:
+					break;
+				}
+			}
+				break;
+
+			case SOUTH: {
+				switch (nextDirection) {
+				case EAST:
+					commandsList.add("-90");
+					break;
+				case WEST:
+					commandsList.add("90");
+					break;
+				case NORTH:
+					commandsList.add("180");
+					break;
+				default:
+					break;
+				}
+			}
+				break;
+
+			case WEST: {
+				switch (nextDirection) {
+				case SOUTH:
+					commandsList.add("-90");
+					break;
+				case NORTH:
+					commandsList.add("90");
+					break;
+				case EAST:
+					commandsList.add("180");
+					break;
+				default:
+					break;
+				}
+			}
+				break;
+
+			case NORTH: {
+				switch (nextDirection) {
+				case EAST:
+					commandsList.add("90");
+					break;
+				case WEST:
+					commandsList.add("-90");
+					break;
+				case SOUTH:
+					commandsList.add("-180");
+					break;
+				default:
+					break;
+				}
+			}
+				break;
+			}
+
+			commandsList.add("travel");
+			currentDirection = nextDirection;
 
 		}
+		
+//		int step = 3;
+//		for(int x = 0; x < commandsList.size(); x+=step) {
+//			commandsList.add("localize");
+//		}
+//		
 		return commandsList;
 	}
+	
+	
+	public Location goToNextUnvisitedLocation(int currentX, int currentY) {
+		int currentIndex = 0;
+		Location nextLocation;
+				
+		for (int i = 0; i < indexes.size()-1; i++) {
+			System.out.println("Locations Are : " + locations[i]);
+			
+			
+			if (currentX == locations[indexes.get(i)].x && currentY == locations[indexes.get(i)].y) {
+				currentIndex = indexes.get(i);
+				if (order.wasLocationVisited[currentIndex + 1] == true) continue;
+				else nextLocation = locations[currentIndex +1];
+			}
+		}
+	
+		return nextLocation;
+	}	
 }
+
+
+
 
 // public static void main(String[] args) {
 // JFrame frame = new JFrame("Paramedic Navigation");
