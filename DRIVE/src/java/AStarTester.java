@@ -180,21 +180,20 @@ public class AStarTester {
 		for (int i = 0; i < indexes.size()-1; i++) {
 			System.out.println("Locations Are : " + locations[i].name);
 			
-			if (currentX == locations[indexes.get(i)].x && currentY == locations[indexes.get(i)].y) {
-				currentIndex = indexes.get(i);
 
-				if (order.wasLocationVisited[indexes.get(currentIndex + 1)] == true) continue;
+				if (order.wasLocationVisited[indexes.get(i + 1)] == true) continue;
 				else{
-					nextLocation = locations[indexes.get(currentIndex +1)];
+					nextLocation = locations[indexes.get(i +1)];
 					//set as visited
-					order.wasLocationVisited[indexes.get(currentIndex + 1)] = true;
+					order.wasLocationVisited[indexes.get(i + 1)] = true;
+					break;
 				}
 			
-			}
 		}
 	
 		return nextLocation;
 	}	
+
 
 	public List<String> getListOfCommandsFromOneLocationToAnother(int xstart, int ystart, int xend, int yend) {
 		List<String> commandsList = new ArrayList<>();
@@ -324,7 +323,4 @@ public class AStarTester {
 			int holderY = holder.get(i).y;
 		}
 	}
-
-
-
 }
