@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.List;
+import java.util.ArrayList;
 
 //import javax.swing.JFrame;
 //import javax.swing.JLabel;
@@ -64,11 +65,49 @@ public class PCClient {
 	/*
 	 * Send a string command
 	 */
-	public boolean sendMultipleCommands(List<String> commands) throws IOException {
-		for (String command : commands) {
-			sendCommand(command);
+	public boolean sendMultipleCommands(List<String> commands) {
+		/*Remove any travel commands and replace with numbers*/
+		int newPos = 0;
+		List<String> newCommands = new ArrayList<>();
+		
+		/*Populate new command array*/
+		for(int pos = 0; pos< commands.size() ; pos++) {
+			/*Get count of travel statements found*/
+			if(commands.get(pos).equals("travel")) {
+				newCommands.add("" + getNumber(commands,pos));
+				pos = pos + getNumber(commands,pos) - 1;
+				newPos +=1;
+			}
+			else {
+				newCommands.add(commands.get(pos));
+				newPos +=1;
+			}
 		}
-		return true;
+		
+		
+		try {
+			for (String command : newCommands) {
+				sendCommand(command);
+			}
+			return true;
+		} catch (IOException e) {}
+		
+		return false;
+	}
+	
+	
+	private int getNumber(List<String> commands, int position) {
+		// TODO Auto-generated method stub
+		int count = 0;
+		for(int pos = position; pos < commands.size() ; pos++ ) {
+			if(commands.get(pos).equals("travel")) {
+				count++;
+			}
+			else {
+				break;
+			}
+		}
+		return count;
 	}
 
 	/*

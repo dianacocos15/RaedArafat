@@ -1,5 +1,9 @@
-
 // Environment code for project doctor2018
+
+import jason.asSyntax.*;
+import jason.environment.*;
+import jason.environment.grid.GridWorldModel;
+import jason.environment.grid.GridWorldView;
 
 import java.awt.Color;
 import java.awt.Font;

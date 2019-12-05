@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Pathfinding {
@@ -7,24 +8,50 @@ public class Pathfinding {
 	private ParamedicEnv globalPara;
 	private char[][] gridArray;
 	private Mission m;
-	private AStar astar;
-	
-	public Pathfinding(Mission m, int gSize, ParamedicEnv localPara) {
+	private AStarTester a;
+	private AStarTester.Location[] locations = new AStarTester.Location[6];
 
+	/*fOR TESTING*/
+	int curr_x = 0;
+	int curr_y = 0;
+
+	public Pathfinding(Mission m, int gSize, ParamedicEnv localPara, AStarTester tester) {
 		this.gSize = gSize;
 		this.globalPara = localPara;
 		gridArray = new char[gSize][gSize];
 		this.m = m;
-
+		this.a = tester;
+		//this.astar = astar;
+		
 		gridArray = m.getGridArray();
+		//astar = new AStar(maze, AStar.xstart, AStar.ystart);
+		//AStar astar = new AStar(maze, 0, 0);
 		drawGrid();
+		goToNextVictim(0,0);
+		goToNextVictim(curr_x,curr_y);
+		goToNextVictim(curr_x,curr_y);
+		goToNextVictim(curr_x,curr_y);
+		goToNextVictim(curr_x,curr_y);
 
 		// TEST
 		// m.checkForVictim("cyan", 4, 3);
-		// m.checkForVictim("burgandy", 1, 3);
+		//m.checkForVictim("burgandy", 1, 3);
 		// m.checkForVictim("white", 0, 4);
 	}
-
+	
+	
+	/*To add hospital or specific location/ landmark */
+	public void addLocation(String name, int x, int y, int index) {
+		AStarTester.Location new_point = new AStarTester.Location(name, x ,y);
+		locations[index] = new_point;
+		System.out.println("Location is: " + locations[index].name + " " + locations[index].x + " " + locations[index].y);
+	}
+	
+	/*Finished Adding Locations, Run this function*/
+	public void finishedAddingLocations(){
+		goToNextVictim(0, 0);
+	}
+	
 	// this method is called to take a victim to the hospital
 	public void goToHospital(int currentX, int currentY) {
 		// get the updated array from Mission
@@ -33,7 +60,7 @@ public class Pathfinding {
 		drawGrid();
 		System.out.println("[Pathfinding] Instructed to take victim to to hospital");
 
-		astar.getListOfCommandsFromOneLocationToAnother(currentX, currentY, 0, 0);
+		a.getListOfCommandsFromOneLocationToAnother(currentX, currentY, 0, 0);
 		
 	}
 
@@ -46,12 +73,17 @@ public class Pathfinding {
 		drawGrid();
 		System.out.println("[Pathfinding] Instructed to continue to next victim");
 
-		AStar.Location nextLocation = astar.goToNextUnvisitedLocation(currentX, currentY);
+		AStarTester.Location nextLocation = a.goToNextUnvisitedLocation(currentX, currentY);
 		
-		int nextX = nextLocation.x;
-		int nextY = nextLocation.y;
+		curr_x = nextLocation.x;
+		curr_y = nextLocation.y;
 		
-		astar.getListOfCommandsFromOneLocationToAnother(currentX, currentY, nextX, nextY);
+
+		List<String> commands = a.getListOfCommandsFromOneLocationToAnother(currentX, currentY, curr_x, curr_y);
+		for(String command : commands) {
+			System.out.println(command);
+		}
+
 	}
 
 	// this method is called after all critical victims (if they exist) have been
@@ -65,7 +97,7 @@ public class Pathfinding {
 		// This is important to remove the Jason belief for the victim location in
 		// paramedic
 
-		List<AStar.Node> noncriticalVictims = new ArrayList<>();
+		List<Node> noncriticalVictims = new ArrayList<>();
 		int xNow = 0;
 		int yNow = 0;
 		int xNext = 0;
@@ -74,7 +106,7 @@ public class Pathfinding {
 		for(int y = 0; y < gridArray.length; y++) {
 			for (int x = 0; x < gridArray[y].length; x++) {
 				if (gridArray[y][x] == 'N') {
-					noncriticalVictims.add(new AStar.Node(null, x, y, 0, 0));
+					noncriticalVictims.add(new Node(null, x, y, 0, 0));
 				}
 			}
 		}
@@ -86,18 +118,8 @@ public class Pathfinding {
 			xNext = noncriticalVictims.get(i+1).x;
 			yNext = noncriticalVictims.get(i+1).y;
 			
-			astar.getListOfCommandsFromOneLocationToAnother(xNow, yNow, xNext, yNext);
+			a.getListOfCommandsFromOneLocationToAnother(xNow, yNow, xNext, yNext);
 		}	
-	}
-	
-	public void markObstacle() {
-		for (int y = 0; y < gridArray.length; y++) {
-			for (int x = 0; x < gridArray[y].length; x++) {
-				if (gridArray[y][x] == 'X') {
-					AStar.maze[x][y] = 100;
-				}
-			}
-		}
 	}
 
 	// updates the array in Pathfinding to resemble the one in Mission
@@ -147,3 +169,4 @@ public class Pathfinding {
 	//
 
 }
+
