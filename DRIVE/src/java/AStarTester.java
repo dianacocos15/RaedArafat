@@ -22,6 +22,9 @@ public class AStarTester {
 	/* Array of locations to travel to individually. */
 	static Location[] locations;
 
+	/* Travel instance */
+	Travel travel;
+
 	//Obstacles
 	List<Obstacle> obstacles = new ArrayList<Obstacle>();
 
@@ -46,7 +49,10 @@ public class AStarTester {
 	
 	AStar aObject;
 
-	public AStarTester(List<Obstacle> obstacles, List<Location> locations) {
+	public AStarTester(List<Obstacle> obstacles, List<Location> locations, Travel travel) {
+		/*Set travel instance equal to*/
+		this.travel = travel;
+
 		/*Mark each obstacle on map as 100*/
 		for (Obstacle o : obstacles) {
 			this.maze[o.y][o.x] = 100;
@@ -216,6 +222,8 @@ public class AStarTester {
 			int nextX = nextNode.x;
 			int nextY = nextNode.y;
 
+			String command = "";
+
 			// 0 = EAST
 			// 1 = SOUTH
 			// 2 = WEST
@@ -237,77 +245,106 @@ public class AStarTester {
 					nextDirection = 0;
 			}
 
+			/*Switch statement*/
 			switch (currentDirection) {
+				case EAST: {
+					switch (nextDirection) {
+					case SOUTH:
+						command = "90";
+						break;
+					case NORTH:
+						command = "-90";
+						break;
+					case WEST:
+						command = "-180";
+						break;
+					default:
+						break;
+					}
+				}
+					break;
 
-			case EAST: {
-				switch (nextDirection) {
-				case SOUTH:
+				case SOUTH: {
+					switch (nextDirection) {
+					case EAST:
+						command = "-90";
+						
+						break;
+					case WEST:
+						command = "90";
+						break;
+					case NORTH:
+						command = "180";
+						break;
+					default:
+						break;
+					}
+				}
+					break;
+
+				case WEST: {
+					switch (nextDirection) {
+					case SOUTH:
+						command = "-90";
+						break;
+					case NORTH:
+						command = "90";
+						break;
+					case EAST:
+						command = "180";
+						break;
+					default:
+						break;
+					}
+				}
+					break;
+
+				case NORTH: {
+					switch (nextDirection) {
+					case EAST:
+						command = "90";
+						break;
+					case WEST:
+						command = "-90";
+						break;
+					case SOUTH:
+						command = "-180";
+						break;
+					default:
+						break;
+					}
+				}
+					break;
+			}
+			
+			//CHECK IF POSSIBLE TO CORRECT
+			//Boolean values
+			boolean localiseRight = travel.checkCorrectionRotationFree("-90",currentDirection,currentX,currentY);
+			boolean localiseLeft = travel.checkCorrectionRotationFree("-90",currentDirection,currentX,currentY);
+
+			if(command != null && !command.isEmpty() && !command.equals("")){
+				if(command.equals("-90") && localiseLeft){
+					System.out.println("Can localise left");
+					commandsList.add("11");
+				}
+				else if(command.equals("90") && localiseRight){
+					System.out.println("Can localise left");
+					commandsList.add("12");
+				}
+				else if(command.equals("180") && localiseRight){
+					//Rotate 90 and localise
+					commandsList.add("12");
 					commandsList.add("90");
-					break;
-				case NORTH:
+				}
+				else if(command.equals("-180") && localiseLeft){
+					commandsList.add("11");
 					commandsList.add("-90");
-					break;
-				case WEST:
-					commandsList.add("-180");
-					break;
-				default:
-					break;
+				}
+				else{
+					commandsList.add(command);
 				}
 			}
-				break;
-
-			case SOUTH: {
-				switch (nextDirection) {
-				case EAST:
-					commandsList.add("-90");
-					break;
-				case WEST:
-					commandsList.add("90");
-					break;
-				case NORTH:
-					commandsList.add("180");
-					break;
-				default:
-					break;
-				}
-			}
-				break;
-
-			case WEST: {
-				switch (nextDirection) {
-				case SOUTH:
-					commandsList.add("-90");
-					break;
-				case NORTH:
-					commandsList.add("90");
-					break;
-				case EAST:
-					commandsList.add("180");
-					break;
-				default:
-					break;
-				}
-			}
-				break;
-
-			case NORTH: {
-				switch (nextDirection) {
-				case EAST:
-					commandsList.add("90");
-					break;
-				case WEST:
-					commandsList.add("-90");
-					break;
-				case SOUTH:
-					commandsList.add("-180");
-					break;
-				default:
-					break;
-				}
-			}
-				break;
-			}
-
+			
 			commandsList.add("travel");
 			currentDirection = nextDirection;
 		}

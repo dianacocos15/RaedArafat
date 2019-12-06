@@ -60,6 +60,8 @@ public class Pathfinding {
 	// this method is called to take a victim to the hospital
 	public void goToHospital(int currentX, int currentY) {
 		// get the updated array from Mission
+		List<String> commands = new ArrayList<>();
+
 		updateGrid();
 		System.out.println("[Pathfinding] Got updated array");
 		drawGrid();
@@ -69,7 +71,15 @@ public class Pathfinding {
 		curr_x = 0;
 		curr_y = 0;
 
-		List<String> commands = a.getListOfCommandsFromOneLocationToAnother(currentX, currentY, 0, 0);
+		//Add command to turn on led's
+		commands.add("999");
+
+
+		commands.addAll(a.getListOfCommandsFromOneLocationToAnother(currentX, currentY, 0, 0));
+
+		//Add command to turn off led's
+		commands.add("000");
+
 		pc.sendMultipleCommands(commands);
 		goToNextVictim(curr_x,curr_y);
 	}

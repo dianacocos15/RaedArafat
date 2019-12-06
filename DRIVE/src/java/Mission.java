@@ -88,7 +88,9 @@ public class Mission {
 		
 		//creates instance of pathfinding to begin the rescue
 		drawGrid();
-		AStarTester as = new AStarTester(obstacleList, locationList);
+		Travel t = new Travel(gridArray);
+
+		AStarTester as = new AStarTester(obstacleList, locationList, t);
 		pf = new Pathfinding(this, gSize, globalPara, as);
 	}
 	
