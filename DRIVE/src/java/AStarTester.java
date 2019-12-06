@@ -157,8 +157,6 @@ public class AStarTester {
 				currentLocation = nextLocation;
 			}
 
-			locationsOrder.add(0);
-
 			System.out.println();
 
 			return locationsOrder;
@@ -197,6 +195,7 @@ public class AStarTester {
 	
 		return nextLocation;
 	}	
+
 
 
 	public List<String> getListOfCommandsFromOneLocationToAnother(int xstart, int ystart, int xend, int yend) {

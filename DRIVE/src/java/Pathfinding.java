@@ -78,6 +78,7 @@ public class Pathfinding {
 		System.out.println("[Pathfinding] Instructed to go to the first victim");
 		
 		AStarTester.Location firstLocation = AStarTester.locations[AStarTester.indexes.get(1)];
+		AStarTester.locations[AStarTester.indexes.get(1)].visited = true;
 		curr_x = firstLocation.x;
 		curr_y = firstLocation.y;
 		
@@ -102,6 +103,13 @@ public class Pathfinding {
 	public void goToNextVictim(int currentX, int currentY) {
 		// next unvisited victim
 		// get the updated array from Mission
+		
+		System.out.println(m.unvisitedPotentialLocations);
+
+		if(m.unvisitedPotentialLocations == 0){
+			return;
+		}
+
 		updateGrid();
 		System.out.println("[Pathfinding] Got updated array");
 		drawGrid();
@@ -124,6 +132,7 @@ public class Pathfinding {
 			System.out.println(values);
 
 			//Check for victim in square
+			System.out.println("CHECK FOR VICTIM IN SQUARE");
 			m.checkForVictim(values, curr_x, curr_y);
 		}
 		else{
@@ -137,35 +146,50 @@ public class Pathfinding {
 	// meaning there are only non-critical victims remaining at known locations.
 	// the number of remaining non-critical victims is passed here, so we know how
 	// many are left to rescue
-	public void rescueRemainingNonCriticals(int remaining, int currentX, int currentY) {
+	public void rescueRemainingNonCriticals(int remaining, int currentX, int currentY) { //CALLED WHEN WE RE AT THE FIRST NON-CRITICAL TO BE TAKEN TO THE HOSPITAL
 		// for every victim that is saved, the method: m.rescuedNonCritical(x,y) must be
 		// called upon taking the victim in question to the hospital.
 		// This is important to remove the Jason belief for the victim location in
 		// paramedic
+		System.out.println("RESCUING ALL NON CRITICAL");
+
+		updateGrid();
 
 		List<Node> noncriticalVictims = new ArrayList<>();
-		int xNow = 0;
-		int yNow = 0;
-		int xNext = 0;
-		int yNext = 0;
+		int xNow = currentX;
+		int yNow = currentY;
+		int xVictim = 0;
+		int yVictim = 0;
 		
 		for(int y = 0; y < gridArray.length; y++) {
 			for (int x = 0; x < gridArray[y].length; x++) {
-				if (gridArray[y][x] == 'N') {
+				if (gridArray[x][y] == 'N') {
 					noncriticalVictims.add(new Node(null, x, y, 0, 0));
 				}
 			}
 		}
-		
-		for (int i = 0; i < noncriticalVictims.size(); i++) {
-			xNow = noncriticalVictims.get(i).x;
-			yNow = noncriticalVictims.get(i).y;
+		//THERE SHOULD BE A LOOP THAT GOES TO THE NEXT VICTIM AND THEN TO THE HOSPITAL, AS THIS FUNCTION IS CALLED WHEN WE ARE LOCATED ON A NON CRITICAL VICTIM, THE VICTIM WE
+		//ARE ON WILL OBVIOUSLY BE THE CLOSEST ONE TO US, SO IT WILL BE THE ONE THAT IS RESCUED FIRST, LOOP THAT UNTIL THE VARIABLE m.actualVictimsRemaining == 0
+		for (int i = 0; i < noncriticalVictims.size() ; i++) {
+
+
+			xVictim = noncriticalVictims.get(i).x;
+			yVictim = noncriticalVictims.get(i).y;
+			System.out.println("GOING TO  "+ xVictim  + "," + yVictim + " ");
+
+			//Go to victim location
+			List<String> commands = a.getListOfCommandsFromOneLocationToAnother(xNow, yNow, xVictim, yVictim);
+			pc.sendMultipleCommands(commands);
 			
-			xNext = noncriticalVictims.get(i+1).x;
-			yNext = noncriticalVictims.get(i+1).y;
-			
-			a.getListOfCommandsFromOneLocationToAnother(xNow, yNow, xNext, yNext);
+			//Go to hospital
+			goToHospital(xVictim,yVictim);
+
+			//set current location
+			xNow = 0;
+			yNow = 0;
 		}	
+
+		System.out.println("DONEEEE ---------------------------");
 	}
 
 	// updates the array in Pathfinding to resemble the one in Mission

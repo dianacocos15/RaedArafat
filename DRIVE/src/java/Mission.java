@@ -8,8 +8,8 @@ public class Mission {
 	private char[][] gridArray; 
 	private ParamedicEnv globalPara;
 	private Pathfinding pf;
-	private int actualVictimsRemaining = 3;
-	private int unvisitedPotentialLocations = 5;
+	public int actualVictimsRemaining = 3;
+	public int unvisitedPotentialLocations = 5;
 	
 	//temporary list used to store locations, so they can be added to the main list at the end, ensuring the order of locations in the final list is: HABCDE
 	//private ArrayList<Location> tempVictimList = new ArrayList<Location>();
@@ -95,12 +95,13 @@ public class Mission {
 	//called when robot arrives at one of the possible locations and reads the colour to ask for the status
 	public void checkForVictim(String color, int x, int y) {
 		//we visited a potential victim location so we decrement the remaining count
-		unvisitedPotentialLocations--;
+		//unvisitedPotentialLocations--; //aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 		if (color.equals("white") ) {
 			System.out.println("white in mission");
 			globalPara.removePotentialVictimBelief(x, y);
 		}
 		else {
+			System.out.println("None White");
 			globalPara.victimFound(color, x, y);
 		}
 	}
@@ -113,34 +114,34 @@ public class Mission {
 		//drawGrid();
 		//calls method in Pathfinding to take the victim to the hospital
 		pf.goToHospital(x, y);
+		unvisitedPotentialLocations--;
 		actualVictimsRemaining--;
 	}
 	
 	//called when non-critical victim is found
 	public void foundNonCritical(int x, int y) {
 		System.out.println("[Mission] Mark victim and continue search");
-		gridArray[x][y] = 'N';
+		gridArray[x][y] = 'N'; //THIS SHOULD BE MOVED IN THE IF BELOW
 		System.out.println("Potential victim (V) updated to non-critical (N)");
+		unvisitedPotentialLocations--;
 		//drawGrid();
 		//calls method in Pathfinding to continue search to next victim
 		if (unvisitedPotentialLocations == 0) {
 			//goes to hospital when all victim locations have been checked
-			pf.goToHospital(x, y);
-			actualVictimsRemaining--;
+			//pf.goToHospital(x, y);
+			//actualVictimsRemaining--;
 			pf.rescueRemainingNonCriticals(actualVictimsRemaining, x, y);
 		}
 		else {
 			pf.goToNextVictim(x, y);
 		}
-		
-		
 	}
 	
 	public void foundNoVictim(int x, int y) {
 		System.out.println("[Mission] No victim. Continue search");
 		gridArray[x][y] = '0';
 		System.out.println("Potential victim (V) updated to no victim (0)");
-		
+		unvisitedPotentialLocations--;
 		pf.goToNextVictim(x, y);
 	}
 
