@@ -69,7 +69,6 @@ public class AStar {
 		}
 
 		
-
 		while (currentNode.x != xstart || currentNode.y != ystart) {
 			path.add(0, currentNode);
 			currentNode = currentNode.parent;

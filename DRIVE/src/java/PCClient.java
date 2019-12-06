@@ -56,9 +56,7 @@ public class PCClient {
 	 */
 	public boolean sendCommand(String command) throws IOException {
 		dOut.writeUTF(command);
-		System.out.println(command);
 		String response = dIn.readUTF();
-		System.out.println(response);
 		return true;
 	}
 
@@ -70,6 +68,8 @@ public class PCClient {
 		int newPos = 0;
 		List<String> newCommands = new ArrayList<>();
 		
+		System.out.println("RECIEVED COMMANDS");
+
 		/*Populate new command array*/
 		for(int pos = 0; pos< commands.size() ; pos++) {
 			/*Get count of travel statements found*/
@@ -84,14 +84,16 @@ public class PCClient {
 			}
 		}
 		
-		
 		try {
 			for (String command : newCommands) {
 				sendCommand(command);
 			}
+			System.out.println("Exiting and returning true");
 			return true;
 		} catch (IOException e) {}
 		
+		System.out.println("Returning false");
+
 		return false;
 	}
 	
@@ -181,8 +183,9 @@ public class PCClient {
 	}
 
 	public String getColor() {
+		System.out.println("Sending get color command");
 		try {
-			dOut.writeUTF("Color");
+			dOut.writeUTF("100");
 			return dIn.readUTF();
 		} catch (IOException e) {
 		}

@@ -96,7 +96,8 @@ public class Mission {
 	public void checkForVictim(String color, int x, int y) {
 		//we visited a potential victim location so we decrement the remaining count
 		unvisitedPotentialLocations--;
-		if (color == "white") {
+		if (color.equals("white") ) {
+			System.out.println("white in mission");
 			globalPara.removePotentialVictimBelief(x, y);
 		}
 		else {

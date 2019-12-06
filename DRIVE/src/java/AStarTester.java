@@ -19,10 +19,8 @@ public class AStarTester {
 	//Locations
 	Location nextLocation;
 
-	
-
 	/* Array of locations to travel to individually. */
-	Location[] locations;
+	static Location[] locations;
 
 	//Obstacles
 	List<Obstacle> obstacles = new ArrayList<Obstacle>();
@@ -31,7 +29,7 @@ public class AStarTester {
 	LocationOrder order;
 
 	//List that holds the order of locations the robot needs to travel to
-	List<Integer> indexes;
+	static List<Integer> indexes;
 
 	//Declare AStar instance
 	AStar astar;
@@ -77,11 +75,13 @@ public class AStarTester {
 		public String name;
 		public int x;
 		public int y;
+		public boolean visited;
 
 		Location(String name, int x, int y) {
 			this.name = name;
 			this.x = x;
 			this.y = y;
+			this.visited = false;
 		}
 	}
 
@@ -173,22 +173,26 @@ public class AStarTester {
 		/*Print order of indexes*/
 		System.out.println("ORDER IS : ");
 		for(int i = 0; i< indexes.size()-1; i++ ){
-			System.out.print(indexes.get(i));
+			System.out.print("  " + locations[indexes.get(i +1)].x + "," + locations[indexes.get(i +1)].y);
+			System.out.print(locations[indexes.get(i +1)].visited);
 		}
 		System.out.println();
 
+		/* Indexes, pick one that isn't marked as visited */
 		for (int i = 0; i < indexes.size()-1; i++) {
 			System.out.println("Locations Are : " + locations[i].name);
-			
-
-				if (order.wasLocationVisited[indexes.get(i + 1)] == true) continue;
+				if(currentX == locations[indexes.get(i +1)].x && currentY == locations[indexes.get(i+1)].y ){
+					continue;
+				} 
+				else if (locations[indexes.get(i +1)].visited){
+					continue;
+				}
 				else{
+					locations[indexes.get(i +1)].visited = true;
 					nextLocation = locations[indexes.get(i +1)];
 					//set as visited
-					order.wasLocationVisited[indexes.get(i + 1)] = true;
 					break;
 				}
-			
 		}
 	
 		return nextLocation;
@@ -307,11 +311,10 @@ public class AStarTester {
 
 			commandsList.add("travel");
 			currentDirection = nextDirection;
+		}
 
-			for (String command: commandsList) {
-				System.out.println(command);
-			}
-			commandsList.clear();
+		for (String command: commandsList) {
+			System.out.println(command);
 		}
 		
 		return commandsList;

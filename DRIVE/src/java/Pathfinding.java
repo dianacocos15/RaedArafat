@@ -8,7 +8,8 @@ public class Pathfinding {
 	private ParamedicEnv globalPara;
 	private char[][] gridArray;
 	private Mission m;
-	private AStarTester a;
+	private static AStarTester a;
+	private PCClient pc;
 	private AStarTester.Location[] locations = new AStarTester.Location[6];
 
 	/*fOR TESTING*/
@@ -27,11 +28,15 @@ public class Pathfinding {
 		//astar = new AStar(maze, AStar.xstart, AStar.ystart);
 		//AStar astar = new AStar(maze, 0, 0);
 		drawGrid();
-		goToNextVictim(0,0);
-		goToNextVictim(curr_x,curr_y);
-		goToNextVictim(curr_x,curr_y);
-		goToNextVictim(curr_x,curr_y);
-		goToNextVictim(curr_x,curr_y);
+		//goToNextVictim(0,0);
+		pc = new PCClient();
+		while(true){
+			if(pc.connectClient()){
+				break;
+			}
+		}
+
+		goToFirstVictim();
 
 		// TEST
 		// m.checkForVictim("cyan", 4, 3);
@@ -60,8 +65,37 @@ public class Pathfinding {
 		drawGrid();
 		System.out.println("[Pathfinding] Instructed to take victim to to hospital");
 
-		a.getListOfCommandsFromOneLocationToAnother(currentX, currentY, 0, 0);
+		/*Set next start coordinates to 0,0*/
+		curr_x = 0;
+		curr_y = 0;
+
+		List<String> commands = a.getListOfCommandsFromOneLocationToAnother(currentX, currentY, 0, 0);
+		pc.sendMultipleCommands(commands);
+		goToNextVictim(curr_x,curr_y);
+	}
+	
+	public void goToFirstVictim() {
+		System.out.println("[Pathfinding] Instructed to go to the first victim");
 		
+		AStarTester.Location firstLocation = AStarTester.locations[AStarTester.indexes.get(1)];
+		curr_x = firstLocation.x;
+		curr_y = firstLocation.y;
+		
+		List<String> commands = a.getListOfCommandsFromOneLocationToAnother(0, 0, curr_x, curr_y);
+		if (pc.sendMultipleCommands(commands)){
+			System.out.println("GETTING COLOR");
+
+			//Now at victim, check color sensor values and check for victim (NEEDS IMPLEMENTING)
+			String values = pc.getColor();
+
+			System.out.println(values);
+
+			//Check for victim in square
+			m.checkForVictim(values, curr_x, curr_y);
+		}
+		else{
+			System.out.println("Failed");
+		}
 	}
 
 	// this method is called to go to next potential victim location
@@ -75,15 +109,27 @@ public class Pathfinding {
 
 		AStarTester.Location nextLocation = a.goToNextUnvisitedLocation(currentX, currentY);
 		
+		//Location coords goal
 		curr_x = nextLocation.x;
 		curr_y = nextLocation.y;
-		
-
+	
 		List<String> commands = a.getListOfCommandsFromOneLocationToAnother(currentX, currentY, curr_x, curr_y);
-		for(String command : commands) {
-			System.out.println(command);
-		}
 
+		if (pc.sendMultipleCommands(commands)){
+			System.out.println("GETTING COLOR");
+
+			//Now at victim, check color sensor values and check for victim (NEEDS IMPLEMENTING)
+			String values = pc.getColor();
+
+			System.out.println(values);
+
+			//Check for victim in square
+			m.checkForVictim(values, curr_x, curr_y);
+		}
+		else{
+			System.out.println("Failed");
+		}
+		
 	}
 
 	// this method is called after all critical victims (if they exist) have been

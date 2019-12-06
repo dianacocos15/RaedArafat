@@ -74,6 +74,7 @@ public class ParamedicEnv extends Environment {
 			}
 			// no victim found at potential location
 			else if (action.getFunctor().equals("nVictim")) {
+				System.out.println("entered nVictim(functor)");
 				int x = (int) ((NumberTerm) action.getTerm(0)).solve();
 				int y = (int) ((NumberTerm) action.getTerm(1)).solve();
 				m.foundNoVictim(x, y);
@@ -116,6 +117,7 @@ public class ParamedicEnv extends Environment {
 
 	public void removePotentialVictimBelief(int x, int y) {
 		addPercept(Literal.parseLiteral("remove_location( " + x + ", " + y + " )"));
+		//pf.goToNextVictim(x, y); //NEWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 	}
 
 	// ======================================================================
